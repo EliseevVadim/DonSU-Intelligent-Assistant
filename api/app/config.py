@@ -40,6 +40,10 @@ def get_auth_encoding():
     return {"secret_key": settings.SECRET_KEY, "algorithm": settings.ALGORITHM}
 
 
+def get_secret_key():
+    return settings.SECRET_KEY
+
+
 def get_embeddings_model_name():
     return settings.EMBEDDINGS_MODEL_NAME
 
