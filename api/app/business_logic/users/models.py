@@ -1,6 +1,7 @@
 import json
+from typing import Optional
 
-from sqlalchemy import CheckConstraint
+from sqlalchemy import CheckConstraint, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base, str_unique, int_primary
@@ -14,6 +15,8 @@ class User(Base):
     email: Mapped[str_unique]
     password: Mapped[str] = mapped_column(nullable=False)
     auth_provider: Mapped[str] = mapped_column(nullable=True)
+    reset_token: Mapped[str] = mapped_column(nullable=True)
+    reset_token_expires_at: Mapped[Optional[DateTime]] = mapped_column(DateTime, nullable=True)
     __table_args__ = (
         CheckConstraint("LENGTH(password) >= 8", name="password_min_length"),
     )

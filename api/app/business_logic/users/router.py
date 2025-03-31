@@ -3,15 +3,20 @@ import secrets
 from fastapi import APIRouter, Depends, Response, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
+from datetime import datetime, timedelta, timezone
+
 from authlib.integrations.starlette_client import OAuth
 
 from app.business_logic.users.auth import hash_password, authenticate_user, create_access_token
 from app.business_logic.users.dao import UsersDAO
 from app.business_logic.users.dependencies import get_user
 from app.business_logic.users.models import User
-from app.business_logic.users.schemas import UserRegistrationDTO, UserPublicDTO
-from app.config import get_google_client_id, get_google_client_secret
-from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException
+from app.business_logic.users.schemas import UserRegistrationDTO, UserPublicDTO, ResetPasswordRequestDTO, \
+    ResetPasswordDTO
+from app.business_logic.users.service import send_password_reset_email
+from app.config import get_google_client_id, get_google_client_secret, get_client_url
+from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, NoUserIdException, \
+    CantResetPasswordException, PasswordResetLinkInvalid, PasswordsMismatch
 
 router = APIRouter(prefix='/auth', tags=['Авторизация и регистрация пользователей'])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/token")
@@ -25,6 +30,8 @@ oauth.register(
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile"},
 )
+
+PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = 15
 
 
 @router.post('/register')
@@ -76,7 +83,42 @@ async def auth_google_callback(request: Request):
             'message': 'Авторизация прошла успешно'}
 
 
+@router.post('/password/reset')
+async def request_password_reset(request_data: ResetPasswordRequestDTO):
+    user = await UsersDAO.find_one(email=request_data.email)
+    if not user:
+        raise NoUserIdException
+    reset_token = secrets.token_urlsafe(64)
+    token_expires_at = datetime.now() + timedelta(minutes=PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
+    rows = await UsersDAO.update(filter_by={'id': user.id}, reset_token=reset_token,
+                                 reset_token_expires_at=token_expires_at)
+    if rows == 0:
+        raise CantResetPasswordException
+    reset_link = f"{get_client_url()}/auth/password/reset/confirm?token={reset_token}"
+    await send_password_reset_email(user.email, reset_link)
+    return {'message': 'На ваш адрес электронной почты отправлена ссылка для сброса пароля.', 'link': reset_link}
+
+
+@router.post('/password/reset/confirm')
+async def reset_password(request_data: ResetPasswordDTO):
+    user = await UsersDAO.find_one(reset_token=request_data.token)
+    if not user or user.reset_token_expires_at < datetime.now():
+        raise PasswordResetLinkInvalid
+    if request_data.new_password != request_data.confirm_new_password:
+        raise PasswordsMismatch
+    rows = await UsersDAO.update(filter_by={'id': user.id}, password=hash_password(request_data.new_password),
+                                 reset_token=None, reset_token_expires_at=None)
+    if rows == 0:
+        raise CantResetPasswordException
+    return {'message': 'Пароль успешно сброшен. Теперь вы можете войти в систему с новым паролем.'}
+
 
 @router.get('/me')
 async def get_me(user_data: User = Depends(get_user)):
     return UserPublicDTO(**user_data.__dict__)
+
+
+@router.post('/logout')
+async def logout(response: Response):
+    response.delete_cookie('access_token')
+    return {'message': 'Пользователь успешно вышел из системы'}

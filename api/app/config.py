@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     COLLECTION_NAME: str
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
+    CLIENT_URL: str
+    SMTP_SERVER: str
+    SMTP_PORT: int
+    SMTP_USERNAME: str
+    SMTP_PASSWORD: str
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"),
         extra='allow'
@@ -62,3 +67,23 @@ def get_google_client_id():
 
 def get_google_client_secret():
     return settings.GOOGLE_CLIENT_SECRET
+
+
+def get_client_url():
+    return settings.CLIENT_URL
+
+
+def get_smtp_server():
+    return settings.SMTP_SERVER
+
+
+def get_smtp_port():
+    return settings.SMTP_PORT
+
+
+def get_smtp_username():
+    return settings.SMTP_USERNAME
+
+
+def get_smtp_password():
+    return settings.SMTP_PASSWORD

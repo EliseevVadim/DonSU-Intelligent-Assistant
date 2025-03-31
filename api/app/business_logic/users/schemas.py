@@ -22,3 +22,14 @@ class UserPublicDTO(BaseModel):
     email: EmailStr = Field(..., description="Электронная почта")
     created_at: datetime = Field(..., description="Дата создания пользователя")
     updated_at: datetime = Field(..., description="Дата обновления информации о пользователе")
+
+
+class ResetPasswordRequestDTO(BaseModel):
+    email: EmailStr = Field(..., description="Электронная почта")
+
+
+class ResetPasswordDTO(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=6)
+    confirm_new_password: str = Field(..., min_length=6)
+
