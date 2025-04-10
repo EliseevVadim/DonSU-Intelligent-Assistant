@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.business_logic.users.router import router as users_router
+from app.business_logic.chats.router import router as chats_router
 from app.config import get_secret_key
 
 app = FastAPI(title='DonSU Intelligent Assistant', description='The official API of DonSU Intelligent Assistant.',
@@ -23,3 +24,4 @@ app.add_middleware(
 )
 
 app.include_router(users_router)
+app.include_router(chats_router)

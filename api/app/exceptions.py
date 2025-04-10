@@ -26,3 +26,8 @@ PasswordResetLinkInvalid = HTTPException(status_code=status.HTTP_403_FORBIDDEN,
 
 PasswordsMismatch = HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                   detail='Указанные пароли не совпадают')
+
+ChatNotFound = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Чат не найден')
+
+NoAccessToChat = HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                               detail='У Вас нет прав управлять этим чатом')
