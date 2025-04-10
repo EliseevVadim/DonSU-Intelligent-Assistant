@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
 
 from authlib.integrations.starlette_client import OAuth
+from starlette.responses import RedirectResponse
 
 from app.business_logic.users.auth import hash_password, authenticate_user, create_access_token
 from app.business_logic.users.dao import UsersDAO
@@ -79,8 +80,7 @@ async def auth_google_callback(request: Request):
         }
         user = await UsersDAO.add(**user_data)
     access_token = create_access_token({'sub': str(user.id)})
-    return {'ok': True, 'access_token': access_token,
-            'message': 'Авторизация прошла успешно'}
+    return RedirectResponse(f"{get_client_url()}/external_auth?access_token={access_token}")
 
 
 @router.post('/password/reset')
