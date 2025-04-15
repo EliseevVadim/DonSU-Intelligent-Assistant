@@ -1,11 +1,11 @@
 <script setup>
 import LogoEmpty from "./LogoEmpty.vue";
-import {computed} from "vue";
+import {computed, onMounted} from "vue";
 
 import { useTheme } from 'vuetify'
 
-const { current } = useTheme()
-const isDark = computed(() => current.value.dark);
+const theme = useTheme();
+const isDark = computed(() => theme.global.name.value === 'dark');
 
 </script>
 

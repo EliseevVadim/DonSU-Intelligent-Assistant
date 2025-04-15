@@ -6,14 +6,14 @@ const theme = useTheme()
 const isDark = ref(false)
 
 onMounted(() => {
-    const savedTheme = localStorage.getItem('theme') ?? 'lightTheme'
+    const savedTheme = localStorage.getItem('theme') ?? 'light'
     theme.global.name.value = savedTheme
-    isDark.value = savedTheme === 'darkTheme'
+    isDark.value = savedTheme === 'dark'
 })
 
 const toggleTheme = () => {
     isDark.value = !isDark.value
-    theme.global.name.value = isDark.value ? 'darkTheme' : 'lightTheme'
+    theme.global.name.value = isDark.value ? 'dark' : 'light'
     localStorage.setItem('theme', theme.global.name.value)
 }
 </script>

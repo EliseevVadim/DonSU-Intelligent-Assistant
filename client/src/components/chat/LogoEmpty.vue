@@ -19,7 +19,7 @@ onMounted(async () => {
     <div
         v-if="currentUser"
         class="welcome-text"
-        :class="theme.global.current.value.dark ? 'dark' : 'light'"
+        :class="theme.global.name.value"
     >
         {{ `Добро пожаловать, ${currentUser.first_name}` }}
     </div>

@@ -9,12 +9,13 @@ const router = useRouter();
 const theme = useTheme();
 
 const currentUser = computed(() => store.getters.CURRENT_USER);
-const isDark = computed(() => theme.global.name.value === 'dark');
-
-const toggleTheme = () => {
-    theme.global.name.value = isDark.value ? 'light' : 'dark';
-};
-
+const isDark = computed({
+    get: () => theme.global.name.value === 'dark',
+    set: (val) => {
+        theme.global.name.value = val ? 'dark' : 'light';
+        localStorage.setItem('theme', theme.global.name.value);
+    }
+});
 const logout = async () => {
     store.dispatch('logout')
         .then(() => {
@@ -49,8 +50,7 @@ const logout = async () => {
                     <span class="text-subtitle-2 mr-6">Тёмная тема</span>
                     <v-switch
                         hide-details
-                        :model-value="isDark"
-                        @change="toggleTheme"
+                        v-model="isDark"
                         inset
                         color="primary"
                         track-color="grey lighten-1"
