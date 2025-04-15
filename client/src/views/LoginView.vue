@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import SocialAuth from "@/components/SocialAuth.vue";
+import ThemeToggler from "@/components/ThemeToggler.vue";
 
 const store = useStore()
 const router = useRouter()
@@ -113,6 +114,7 @@ const login = async () => {
             </v-col>
         </v-row>
     </v-container>
+    <ThemeToggler/>
 </template>
 
 <style scoped>
