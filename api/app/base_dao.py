@@ -1,6 +1,7 @@
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, update, delete, func, desc
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.business_logic.chats.models import Chat
 from app.database import async_session_maker
 
 
@@ -24,7 +25,7 @@ class BaseDAO:
     @classmethod
     async def find_all(cls, **fileter_by):
         async with async_session_maker() as session:
-            query = select(cls.model).filter_by(**fileter_by)
+            query = select(cls.model).filter_by(**fileter_by).order_by(desc(Chat.updated_at))
             result = await session.execute(query)
             return result.scalars().all()
 
