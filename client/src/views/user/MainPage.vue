@@ -2,6 +2,8 @@
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import {computed, onMounted, ref} from 'vue'
+import ConfirmDialog from '../../components/ConfirmDialog.vue'
+import RenameDialog from '@/components/chat/RenameChatModal.vue'
 import CreateButton from "@/components/chat/CreateButton.vue";
 import EmptyChat from "@/components/chat/EmptyChat.vue";
 import MessageView from "@/components/chat/MessageView.vue";
@@ -11,7 +13,13 @@ import User from "@/views/user/User.vue";
 const store = useStore()
 const router = useRouter()
 
-const isDay = localStorage.getItem("theme") === 'light'
+const confirmDialog = ref(null);
+const renameDialog = ref(false);
+const renameTarget = ref(null);
+
+
+
+const isDay = localStorage.getItem("theme") === 'light';
 
 const scrollFn = () => {
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
@@ -19,201 +27,71 @@ const scrollFn = () => {
 
 const drawer = window.innerWidth < 768 ? ref(false) : ref(true);
 
-const currentChat = ref(JSON.parse(localStorage.getItem("currentChat")) || 0);
+const currentChat = ref(null);
 
-const allChatsViews = ref(
-    Array(JSON.parse(localStorage.getItem("allChatsViewsLength"))) || []
-);
+const chats = computed(() => store.getters.CHATS);
 
 const message = ref("");
 
-const messageView = ref(
-    JSON.parse(localStorage.getItem(`messageView${currentChat.value}`)) || []
-);
+const messageView = ref([]);
 
-const setCurrentChatInLocal = () => {
-    localStorage.setItem("currentChat", JSON.stringify(currentChat.value));
-};
+const subtitle = ref('test');
 
-const setAllChatsViewsLengthInLocal = () => {
-    localStorage.setItem(
-        "allChatsViewsLength",
-        JSON.stringify(allChatsViews.value.length)
-    );
+const fetchChats = () => {
+    store.dispatch('loadChats');
 };
 
 const createNewChat = () => {
-    const lastMessageView =
-        JSON.parse(
-            localStorage.getItem(`messageView${allChatsViews.value.length - 1}`)
-        ) || [];
-    if (lastMessageView.length >= 2) {
-        messageView.value = [];
-        currentChat.value = allChatsViews.value.length;
-        allChatsViews.value.push(allChatsViews.value.length);
-        messageView.value =
-            JSON.parse(
-                localStorage.getItem(`messageView${allChatsViews.value.length}`)
-            ) || [];
-        setCurrentChatInLocal();
-        setAllChatsViewsLengthInLocal();
-    }
+    store.dispatch('createChat');
+    fetchChats();
 };
 
-const setCurrentChat = () => {
-    setCurrentChatInLocal();
-    messageView.value =
-        JSON.parse(localStorage.getItem(`messageView${currentChat.value}`)) || [];
-    if (window.innerWidth < 768) {
-        drawer.value = false;
-    }
+const renameChat = (chat) => {
+    renameTarget.value = chat
+    renameDialog.value = true
 };
 
-const deleteChat = (chatIndex) => {
-    if (localStorage.length > 0 && allChatsViews.value.length > 1) {
-        allChatsViews.value.splice(chatIndex, 1);
-        setAllChatsViewsLengthInLocal();
-        localStorage.removeItem(`messageView${chatIndex}`);
-        localStorage.removeItem(`messageList${chatIndex}`);
+const applyRename = (newName) => {
+    store.dispatch('renameChat', {
+        'chat_id': renameTarget.value.id,
+        'new_name': newName
+    })
+        .then(() => {
+            fetchChats();
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+}
 
-        for (let i = chatIndex; i < allChatsViews.value.length; i++) {
-            const oldMessageViewKey = `messageView${i + 1}`;
-            const newMessageViewKey = `messageView${i}`;
-            const oldMessageListKey = `messageList${i + 1}`;
-            const newMessageListKey = `messageList${i}`;
-            const messageViewData = localStorage.getItem(oldMessageViewKey);
-            const messageListData = localStorage.getItem(oldMessageListKey);
+const deleteChat = async (chat) => {
+    await confirmDialog.value.open('Подтверждение удаления чата',
+        `Вы действительно хотите удалить чат: <b>${chat.name}</b>?`)
+        .then(() => {
+            store.dispatch('deleteChat', chat.id)
+                .then(() => {
+                    fetchChats();
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        })
+        .catch(() => {
 
-            if (messageViewData !== null) {
-                localStorage.setItem(newMessageViewKey, messageViewData);
-                localStorage.removeItem(oldMessageViewKey);
-            }
-
-            if (messageListData !== null) {
-                localStorage.setItem(newMessageListKey, messageListData);
-                localStorage.removeItem(oldMessageListKey);
-            }
-        }
-
-        if (currentChat.value >= allChatsViews.value.length) {
-            currentChat.value = allChatsViews.value.length - 1;
-            setCurrentChatInLocal();
-            messageView.value = JSON.parse(
-                localStorage.getItem(`messageView${currentChat.value}`)
-            );
-        }
-    } else {
-        localStorage.removeItem("messageView0");
-        localStorage.removeItem("messageList0");
-    }
+        })
 };
 
 const sendMessage = () => {
-    const messageListKey = `messageList${currentChat.value}`;
-    let messageList = JSON.parse(localStorage.getItem(messageListKey)) || [];
-    const tokensLimit = 8000;
-    let currentTokens = messageList.reduce(
-        (acc, msg) => acc + msg.content.length,
-        0
-    );
-
-    if (currentTokens >= tokensLimit) {
-        messageList.splice(0, Math.floor(messageList.length / 2));
-        localStorage.setItem(messageListKey, JSON.stringify(messageList));
-    }
-
-    if (message.value.trim() === "") {
-        return;
-    }
-
-    const apiKey =
-        JSON.parse(localStorage.getItem("api")) || "";
-    const userMessage = message.value;
-    const maxTokens = 1000;
-    const temperature = 0.5;
-    const model = "gpt-3.5-turbo";
-
-    const newMessageView = {
-        prependAvatar: "public/ava2.jpg",
-        title: "Вы",
-        subtitle: userMessage,
-    };
-
-    const divider = { type: "divider", inset: true };
-
-    const newMessageList = { role: "user", content: userMessage };
-
-    messageView.value.push(newMessageView, divider);
-    messageList.push(newMessageList);
-    setTimeout(() => {
-        scrollFn();
-    }, 100);
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-            model,
-            messages: messageList,
-            max_tokens: maxTokens,
-            temperature,
-        }),
-    };
-    async function sendMessage() {
-        try {
-            messageView.value.push({
-                prependAvatar: "ChatGPT.svg",
-                subtitle : "Печатает...💬"
-            });
-
-            const response = await fetch("https://api.openai.com/v1/chat/completions", requestOptions);
-            const data = await response.json();
-            await messageView.value.pop()
-            const aiMessage = data.choices ? data.choices[0].message.content : data.error.message;
-
-            if (data.choices) {
-                const newMessageView = {
-                    prependAvatar: "ChatGPT.svg",
-                    title: "Chat-GPT",
-                    subtitle: aiMessage
-                };
-
-                const newMessageList = { role: "assistant", content: aiMessage };
-                messageView.value.push(newMessageView, divider);
-                messageList.push(newMessageList);
-                localStorage.setItem(messageListKey, JSON.stringify(messageList));
-                localStorage.setItem(
-                    `messageView${currentChat.value}`,
-                    JSON.stringify(messageView.value)
-                );
-
-                setTimeout(() => {
-                    scrollFn();
-                }, 100);
-            }
-
-            if (data.error) {
-                const newMessageView = {
-                    prependAvatar: "public/ava1.jpg",
-                    title: "Ошибка",
-                    subtitle: aiMessage,
-                };
-                messageView.value.push(newMessageView, divider);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    }
-    sendMessage()
-    message.value = "";
-    scrollFn();
-    document.getElementById("footer").blur();
+    console.log("to be done");
 };
+
 const sendCard = (newMessage) => {
     message.value = newMessage;
     sendMessage();
+};
+
+const setCurrentChat = (id) => {
+    selectedChatId.value = id;
 };
 
 const selectedChatId = ref(null);
@@ -223,8 +101,10 @@ const isAuthenticated = computed(() => store.getters.isAuthenticated)
 
 onMounted(() => {
     if (!isAuthenticated.value) {
-        router.push('/login')
+        router.push('/login');
+        return;
     }
+    fetchChats();
 })
 
 const logout = async () => {
@@ -236,7 +116,7 @@ const logout = async () => {
 </script>
 
 <template>
-    <v-app  id="inspire">
+    <v-app id="inspire">
         <v-app-bar class="px-3 z" flat height="72" border>
             <v-spacer>
                 <CreateButton :createNewChat="createNewChat" />
@@ -259,33 +139,63 @@ const logout = async () => {
             />
             <MessageView v-else :message-view="messageView" :subtitle="subtitle" />
         </v-main>
-        <v-navigation-drawer v-model="drawer" outline location="left">
+        <v-navigation-drawer v-model="drawer" outline location="left" width="300">
             <v-list class="z">
                 <v-list-item
-                    v-for="(n, i) in allChatsViews"
+                    v-for="(chat, i) in chats.values()"
                     :key="i"
                     :value="i"
-                    active-color="tonal"
-                    @click.stop="(currentChat = i), setCurrentChat()"
+                    base-color="tonal"
+                    @click.stop="setCurrentChat(chat.id)"
                     link
                     prepend-icon="mdi-message-text"
+                    class="chat-list-item"
                 >
-                    <template v-slot:append>
-                        <v-btn
-                            v-if="currentChat === i"
-                            icon="mdi-delete"
-                            class="hover"
-                            variant="text"
-                            @click="deleteChat(i)"
-                        ></v-btn>
+                    <template v-slot:title>
+                        <span class="truncate">{{ chat.name }}</span>
                     </template>
-                    {{ i > 0 ? "Новый чат" + " " + i : "Новый чат" }}
+
+                    <template v-slot:append>
+                        <v-menu
+                            location="bottom end"
+                            offset="4"
+                        >
+                            <template v-slot:activator="{ props }">
+                                <v-btn
+                                    icon="mdi-dots-horizontal"
+                                    variant="text"
+                                    v-bind="props"
+                                    @click.stop
+                                />
+                            </template>
+                            <v-list>
+                                <v-list-item @click="renameChat(chat)">
+                                    <v-list-item-icon>
+                                        <v-icon>mdi-pencil</v-icon>
+                                    </v-list-item-icon>
+                                    <v-list-item-title>Переименовать</v-list-item-title>
+                                </v-list-item>
+                                <v-list-item @click="deleteChat(chat)">
+                                    <v-list-item-icon>
+                                        <v-icon color="error">mdi-delete</v-icon>
+                                    </v-list-item-icon>
+                                    <v-list-item-title class="text-error">Удалить</v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
+                    </template>
                 </v-list-item>
             </v-list>
         </v-navigation-drawer>
         <v-footer class="z" app height="92">
             <MessageField id="footer" v-model="message" :send="sendMessage" />
         </v-footer>
+        <ConfirmDialog ref="confirmDialog" />
+        <RenameDialog
+            v-model="renameDialog"
+            :current-name="renameTarget?.name"
+            @rename="applyRename"
+        />
     </v-app>
 </template>
 
