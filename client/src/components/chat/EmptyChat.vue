@@ -1,60 +1,70 @@
-<template>
-  <v-container class="justify-space-between container" :class="{
-    
-  }">
-    <LogoEmpty class="mt-14"/>
-    <v-row style="margin-top: 230px;" class="  justify-center">
-      <SampleCard 
-      class="d-none d-sm-block"
-
-        text="Напиши историю про кота ,цепочкой смайликов🐱"
-        @cardClick="handleCardClick" />
-      <SampleCard
-      class="d-none d-sm-block"
-
-        text="Напиши краткое содержание книги «Война и Мир».📖"
-        @cardClick="handleCardClick"
-      />
-      <SampleCard
-        text="Переведи с русского на китайский текст «Где моя посылка?».🇨🇳 "
-        @cardClick="handleCardClick"
-      />
-    </v-row>
-    <v-row class="mt-4 justify-center" >
-      <SampleCard
-      class="d-none d-sm-block"
-        text=" Составь резюме для python-программиста без опыта работы. 💼"
-        @cardClick="handleCardClick"
-      />
-      <SampleCard 
-      class="d-none d-sm-block"
-      text=" Опишите ужасное похмелье, языком крестьянина 18 века.👨🏻‍🌾  " 
-      @cardClick="handleCardClick"/>
-      <SampleCard 
-      class="d-none d-sm-block"
-
-      text=" Напиши на javascript функцию сортировки массива объектов.♻️" 
-      @cardClick="handleCardClick"
-      />
-    </v-row>
-  </v-container>
-</template>
 <script setup>
 import LogoEmpty from "./LogoEmpty.vue";
-import SampleCard from "./SampleCard.vue";
 import { useDisplay } from 'vuetify'
+import {computed} from "vue";
+
+import { useTheme } from 'vuetify'
+
+const { current } = useTheme()
+const isDark = computed(() => current.value.dark)
+
 const { mobile } = useDisplay()
 const props = defineProps({
-  text: {
-    type: String,
-  },
+    text: {
+        type: String,
+    },
 });
 const emit = defineEmits(["cardClick"]);
 const handleCardClick = (cardText) => {
-  emit('cardClick', cardText);
+    emit('cardClick', cardText);
 }
 
 </script>
-<style>
 
+<template>
+    <v-container class="justify-space-between container">
+        <LogoEmpty class="mt-14" />
+
+        <v-row class="justify-center mt-8">
+            <v-col cols="12" md="8">
+                <div
+                    class="info-box"
+                    :class="{ 'dark-mode': isDark }"
+                >
+                    🤖 Этот ИИ-ассистент создан для помощи студентам и абитуриентам Донецкого государственного университета.
+                    <br /><br />
+                    ⚠️ Пожалуйста, учитывайте, что ответы могут содержать неточности. Всегда перепроверяйте важную информацию, особенно связанную с расписанием, приёмной комиссией, учебными документами и нормативными актами.
+                </div>
+            </v-col>
+        </v-row>
+    </v-container>
+</template>
+
+
+<style scoped>
+.info-box {
+    background-color: #f5f5f5;
+    border-left: 5px solid #1976d2;
+    padding: 24px;
+    font-size: 18px;
+    color: #333;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    line-height: 1.6;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.info-box.dark-mode {
+    background-color: #1e1e1e;
+    color: #eee;
+    border-left-color: #90caf9;
+}
+
+@media (max-width: 600px) {
+    .info-box {
+        font-size: 16px;
+        padding: 16px;
+    }
+}
 </style>
+
