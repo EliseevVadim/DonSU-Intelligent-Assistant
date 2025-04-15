@@ -18,7 +18,6 @@ theme.global.name.value = savedTheme
 
 const isDay = computed(() => theme.global.name.value === 'light')
 
-// Остальной код
 const store = useStore()
 const router = useRouter()
 
@@ -167,16 +166,16 @@ onMounted(() => {
                             </template>
                             <v-list>
                                 <v-list-item @click="renameChat(chat)">
-                                    <v-list-item-icon>
-                                        <v-icon>mdi-pencil</v-icon>
-                                    </v-list-item-icon>
-                                    <v-list-item-title>Переименовать</v-list-item-title>
+                                    <v-list-item-title class="d-flex align-center">
+                                        <v-icon class="mr-2">mdi-pencil</v-icon>
+                                        Переименовать
+                                    </v-list-item-title>
                                 </v-list-item>
                                 <v-list-item @click="deleteChat(chat)">
-                                    <v-list-item-icon>
-                                        <v-icon color="error">mdi-delete</v-icon>
-                                    </v-list-item-icon>
-                                    <v-list-item-title class="text-error">Удалить</v-list-item-title>
+                                    <v-list-item-title class="d-flex align-center text-error">
+                                        <v-icon color="error" class="mr-2">mdi-delete</v-icon>
+                                        Удалить
+                                    </v-list-item-title>
                                 </v-list-item>
                             </v-list>
                         </v-menu>

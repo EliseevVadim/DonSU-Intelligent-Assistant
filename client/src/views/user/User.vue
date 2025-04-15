@@ -44,7 +44,8 @@ const logout = async () => {
         </template>
 
         <v-card>
-            <v-card-title class="bg-black text-caption">⚙️ Настройки</v-card-title>
+            <v-card-title class="text-caption">⚙️ Настройки</v-card-title>
+            <v-divider />
             <v-card-text class="py-3">
                 <div class="d-flex align-center justify-space-between mb-4">
                     <span class="text-subtitle-2 mr-6">Тёмная тема</span>
