@@ -1,23 +1,11 @@
 <script setup>
 import LogoEmpty from "./LogoEmpty.vue";
-import { useDisplay } from 'vuetify'
 import {computed} from "vue";
 
 import { useTheme } from 'vuetify'
 
 const { current } = useTheme()
-const isDark = computed(() => current.value.dark)
-
-const { mobile } = useDisplay()
-const props = defineProps({
-    text: {
-        type: String,
-    },
-});
-const emit = defineEmits(["cardClick"]);
-const handleCardClick = (cardText) => {
-    emit('cardClick', cardText);
-}
+const isDark = computed(() => current.value.dark);
 
 </script>
 

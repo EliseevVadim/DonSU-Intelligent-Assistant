@@ -1,13 +1,29 @@
-<template>
-    <div class="welcome-text" :class="theme.global.current.value.dark ? 'dark' : 'light'">
-        Добро пожаловать
-    </div>
-</template>
-
 <script setup>
 import { useTheme } from 'vuetify'
-const theme = useTheme()
+import {computed, onMounted} from "vue";
+import { useStore } from 'vuex'
+
+const store = useStore();
+const theme = useTheme();
+
+const currentUser = computed(() => store.getters.CURRENT_USER);
+
+onMounted(async () => {
+    if (!currentUser.value) {
+        await store.dispatch('loadUserInfo')
+    }
+})
 </script>
+
+<template>
+    <div
+        v-if="currentUser"
+        class="welcome-text"
+        :class="theme.global.current.value.dark ? 'dark' : 'light'"
+    >
+        {{ `Добро пожаловать, ${currentUser.first_name}` }}
+    </div>
+</template>
 
 <style scoped>
 .welcome-text {

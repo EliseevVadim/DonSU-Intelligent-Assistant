@@ -3,11 +3,13 @@ import {config} from "@/config/config.js";
 import store from "@/store/index.js";
 
 const state = {
-    access_token: localStorage.getItem('access_token') || null
+    access_token: localStorage.getItem('access_token') || null,
+    current_user: null
 };
 
 const getters = {
-    isAuthenticated: state => !!state.access_token
+    isAuthenticated: state => !!state.access_token,
+    CURRENT_USER: state => state.current_user
 };
 
 const mutations = {
@@ -18,6 +20,9 @@ const mutations = {
     REMOVE_ACCESS_TOKEN(state) {
         localStorage.removeItem('access_token')
         state.access_token = null
+    },
+    SET_CURRENT_USER(state, user_info) {
+        state.current_user = user_info
     }
 };
 
@@ -40,7 +45,7 @@ const actions = {
             formData.append('password', payload.password);
             await axios.post(config.apiUrl + '/auth/login', formData)
                 .then((response) => {
-                    store.commit('SET_ACCESS_TOKEN', response.data.access_token)
+                    store.commit('SET_ACCESS_TOKEN', response.data.access_token);
                     resolve(response)
                 })
                 .catch((error) => {
@@ -51,7 +56,7 @@ const actions = {
     authenticateExternally: (context, access_token) => {
         return new Promise((resolve, reject) => {
             try {
-                store.commit('SET_ACCESS_TOKEN', access_token);
+                context.commit('SET_ACCESS_TOKEN', access_token);
                 resolve();
             }
             catch {
@@ -63,13 +68,25 @@ const actions = {
         return new Promise(async (resolve, reject) => {
             await axios.post(config.apiUrl + '/auth/logout')
                 .then((response) => {
-                    context.commit('REMOVE_ACCESS_TOKEN')
-                    resolve(response)
+                    context.commit('REMOVE_ACCESS_TOKEN');
+                    context.commit('SET_CURRENT_USER', null);
+                    resolve(response);
                 })
                 .catch((error) => {
                     reject(error)
                 })
         })
+    },
+    loadUserInfo: async (context) => {
+        await axios.get(config.apiUrl + '/auth/me', {
+            headers: config.headers
+        })
+            .then((response) => {
+                context.commit('SET_CURRENT_USER', response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
     }
 };
 

@@ -10,8 +10,8 @@ import MessageView from "@/components/chat/MessageView.vue";
 import MessageField from "@/components/chat/MessageField.vue";
 import User from "@/views/user/User.vue";
 
-const store = useStore()
-const router = useRouter()
+const store = useStore();
+const router = useRouter();
 
 const confirmDialog = ref(null);
 const renameDialog = ref(false);
@@ -30,6 +30,7 @@ const drawer = window.innerWidth < 768 ? ref(false) : ref(true);
 const currentChat = ref(null);
 
 const chats = computed(() => store.getters.CHATS);
+const currentUser = computed(() => store.getters.CURRENT_USER);
 
 const message = ref("");
 
@@ -40,6 +41,10 @@ const subtitle = ref('test');
 const fetchChats = () => {
     store.dispatch('loadChats');
 };
+
+const fetchUserInfo = () => {
+    store.dispatch('loadUserInfo');
+}
 
 const createNewChat = () => {
     store.dispatch('createChat');
@@ -85,11 +90,6 @@ const sendMessage = () => {
     console.log("to be done");
 };
 
-const sendCard = (newMessage) => {
-    message.value = newMessage;
-    sendMessage();
-};
-
 const setCurrentChat = (id) => {
     selectedChatId.value = id;
 };
@@ -105,6 +105,7 @@ onMounted(() => {
         return;
     }
     fetchChats();
+    fetchUserInfo();
 })
 
 const logout = async () => {
@@ -135,7 +136,6 @@ const logout = async () => {
                 :value="message"
                 class="night"
                 :class="{ day:isDay }"
-                @cardClick="sendCard"
             />
             <MessageView v-else :message-view="messageView" :subtitle="subtitle" />
         </v-main>
