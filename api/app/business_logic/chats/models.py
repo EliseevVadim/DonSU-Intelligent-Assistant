@@ -5,6 +5,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.business_logic.messages.models import Message
 from app.database import Base
 
 
@@ -15,6 +16,8 @@ class Chat(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
 
     user: Mapped['User'] = relationship('User', back_populates='chats')
+    messages: Mapped[list['Message']] = relationship('Message', back_populates='chat',
+                                                     cascade='all, delete')
 
     def __str__(self):
         return json.dumps({

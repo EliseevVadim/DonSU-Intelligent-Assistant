@@ -25,7 +25,7 @@ class BaseDAO:
     @classmethod
     async def find_all(cls, **fileter_by):
         async with async_session_maker() as session:
-            query = select(cls.model).filter_by(**fileter_by).order_by(desc(Chat.updated_at))
+            query = select(cls.model).filter_by(**fileter_by).order_by(desc(cls.model.updated_at))
             result = await session.execute(query)
             return result.scalars().all()
 
