@@ -26,34 +26,37 @@ const renameDialog = ref(false)
 const renameTarget = ref(null)
 
 const drawer = window.innerWidth < 768 ? ref(false) : ref(true)
-const currentChat = ref(null)
+const currentChat = ref(null);
+
+const showNewChat = ref(true);
 
 const chats = computed(() => store.getters.CHATS)
-const currentUser = computed(() => store.getters.CURRENT_USER)
 
 const message = ref("")
-const messageView = ref([])
+const messages = computed(() => store.getters.MESSAGES)
 const subtitle = ref('test')
 const selectedChatId = ref(null)
 const newMessage = ref('')
 
 const isAuthenticated = computed(() => store.getters.isAuthenticated)
 
-const scrollFn = () => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })
-}
-
-const fetchChats = () => {
-    store.dispatch('loadChats')
+const fetchChats = async () => {
+    await store.dispatch('loadChats');
 }
 
 const fetchUserInfo = () => {
     store.dispatch('loadUserInfo')
 }
 
+const fetchMessages = async () => {
+    await store.dispatch('loadMessagesByChat', selectedChatId.value);
+}
+
 const createNewChat = () => {
-    store.dispatch('createChat')
-    fetchChats()
+    selectedChatId.value = null;
+    showNewChat.value = true;
+    // store.dispatch('createChat')
+    // fetchChats();
 }
 
 const renameChat = (chat) => {
@@ -91,24 +94,19 @@ const sendMessage = () => {
     console.log("to be done")
 }
 
-const setCurrentChat = (id) => {
+const setCurrentChat = async (id) => {
     selectedChatId.value = id
+    await fetchMessages();
+    showNewChat.value = false;
 }
 
-const logout = async () => {
-    store.dispatch('logout')
-        .then(() => {
-            router.push('/login')
-        })
-}
-
-onMounted(() => {
+onMounted(async () => {
     if (!isAuthenticated.value) {
-        router.push('/login')
+        await router.push('/login')
         return
     }
-    fetchChats()
-    fetchUserInfo()
+    await fetchChats();
+    fetchUserInfo();
 })
 </script>
 
@@ -128,12 +126,12 @@ onMounted(() => {
         </v-app-bar>
         <v-main>
             <EmptyChat
-                v-if="messageView.length === 0"
+                v-if="showNewChat.valueOf()"
                 :value="message"
                 class="night"
                 :class="{ day:isDay }"
             />
-            <MessageView v-else :message-view="messageView" :subtitle="subtitle" />
+            <MessageView v-else :message-view="messages" :subtitle="subtitle" />
         </v-main>
         <v-navigation-drawer v-model="drawer" outline location="left" width="300">
             <v-list class="z">
