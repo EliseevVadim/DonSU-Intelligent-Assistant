@@ -1,62 +1,41 @@
 <script setup>
 import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
-import { computed, onMounted, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useTheme } from 'vuetify'
 
 import ConfirmDialog from '../../components/ConfirmDialog.vue'
 import RenameDialog from '@/components/chat/RenameChatModal.vue'
-import CreateButton from "@/components/chat/CreateButton.vue";
-import EmptyChat from "@/components/chat/EmptyChat.vue";
-import MessageView from "@/components/chat/MessageView.vue";
-import MessageField from "@/components/chat/MessageField.vue";
-import User from "@/views/user/User.vue";
+import CreateButton from "@/components/chat/CreateButton.vue"
+import MessageField from "@/components/chat/MessageField.vue"
+import User from "@/views/user/User.vue"
 
 const theme = useTheme()
-const savedTheme = localStorage.getItem('theme') ?? 'light'
-theme.global.name.value = savedTheme
-
-const isDay = computed(() => theme.global.name.value === 'light')
+theme.global.name.value = localStorage.getItem('theme') ?? 'light'
 
 const store = useStore()
 const router = useRouter()
+const route = useRoute()
 
 const confirmDialog = ref(null)
 const renameDialog = ref(false)
 const renameTarget = ref(null)
 
-const drawer = window.innerWidth < 768 ? ref(false) : ref(true)
-const currentChat = ref(null);
+const drawer = window.innerWidth < 768 ? ref(false) : ref(true);
+const message = ref("");
 
-const showNewChat = ref(true);
+const chats = computed(() => store.getters.CHATS);
+const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
-const chats = computed(() => store.getters.CHATS)
+const fetchChats = async () => await store.dispatch('loadChats')
+const fetchUserInfo = () => store.dispatch('loadUserInfo')
 
-const message = ref("")
-const messages = computed(() => store.getters.MESSAGES)
-const subtitle = ref('test')
-const selectedChatId = ref(null)
-const newMessage = ref('')
-
-const isAuthenticated = computed(() => store.getters.isAuthenticated)
-
-const fetchChats = async () => {
-    await store.dispatch('loadChats');
+const fetchMessages = async (chatId) => {
+    await store.dispatch('loadMessagesByChat', chatId)
 }
 
-const fetchUserInfo = () => {
-    store.dispatch('loadUserInfo')
-}
-
-const fetchMessages = async () => {
-    await store.dispatch('loadMessagesByChat', selectedChatId.value);
-}
-
-const createNewChat = () => {
-    selectedChatId.value = null;
-    showNewChat.value = true;
-    // store.dispatch('createChat')
-    // fetchChats();
+const createNewChat = async () => {
+    await router.push('/chat')
 }
 
 const renameChat = (chat) => {
@@ -64,41 +43,56 @@ const renameChat = (chat) => {
     renameDialog.value = true
 }
 
-const applyRename = (newName) => {
-    store.dispatch('renameChat', {
+const applyRename = async (newName) => {
+    await store.dispatch('renameChat', {
         'chat_id': renameTarget.value.id,
         'new_name': newName
     })
-        .then(() => {
-            fetchChats()
-        })
-        .catch((error) => {
-            console.log(error)
-        })
+    await fetchChats()
 }
 
 const deleteChat = async (chat) => {
     await confirmDialog.value.open(
         'Подтверждение удаления чата',
         `Вы действительно хотите удалить чат: <b>${chat.name}</b>?`
-    )
-        .then(() => {
-            store.dispatch('deleteChat', chat.id)
-                .then(() => fetchChats())
-                .catch((error) => console.log(error))
-        })
-        .catch(() => {})
+    ).then(() => {
+        if (route.params.id === chat.id) {
+            router.push('/chat');
+        }
+        store.dispatch('deleteChat', chat.id).then(() => fetchChats())
+    }).catch(() => {})
 }
 
-const sendMessage = () => {
-    console.log("to be done")
+const sendMessage = async () => {
+    let chatId = route.params.id;
+    if (!chatId) {
+        await store.dispatch('createChat')
+            .then(async (response) => {
+                chatId = response.data.chat_id;
+                await fetchChats();
+                await router.push('/chat/' + chatId);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+    await store.dispatch('sendMessage', {
+        'chat_id': chatId,
+        'text_content': message.value
+    });
+    await fetchMessages(chatId);
+    message.value = '';
 }
 
-const setCurrentChat = async (id) => {
-    selectedChatId.value = id
-    await fetchMessages();
-    showNewChat.value = false;
+const openChat = async (id) => {
+    await router.push(`/chat/${id}`)
 }
+
+watch(() => route.params.id, async (id) => {
+    if (id) {
+        await fetchMessages(id)
+    }
+}, { immediate: true })
 
 onMounted(async () => {
     if (!isAuthenticated.value) {
@@ -106,8 +100,9 @@ onMounted(async () => {
         return
     }
     await fetchChats();
-    fetchUserInfo();
+    await fetchUserInfo();
 })
+
 </script>
 
 <template>
@@ -125,13 +120,7 @@ onMounted(async () => {
             <User />
         </v-app-bar>
         <v-main>
-            <EmptyChat
-                v-if="showNewChat.valueOf()"
-                :value="message"
-                class="night"
-                :class="{ day:isDay }"
-            />
-            <MessageView v-else :message-view="messages" :subtitle="subtitle" />
+            <router-view />
         </v-main>
         <v-navigation-drawer v-model="drawer" outline location="left" width="300">
             <v-list class="z">
@@ -139,8 +128,9 @@ onMounted(async () => {
                     v-for="(chat, i) in chats.values()"
                     :key="i"
                     :value="i"
+                    :active="route.params.id === chat.id"
                     base-color="tonal"
-                    @click.stop="setCurrentChat(chat.id)"
+                    @click.stop="openChat(chat.id)"
                     link
                     prepend-icon="mdi-message-text"
                     class="chat-list-item"

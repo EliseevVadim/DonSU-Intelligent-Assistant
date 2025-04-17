@@ -11,7 +11,7 @@ const getters = {
 
 const mutations = {
     SET_MESSAGES(state, payload) {
-        state.messages = payload.messages
+        state.messages = payload.messages.reverse();
     }
 };
 

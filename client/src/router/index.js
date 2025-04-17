@@ -34,12 +34,24 @@ const routes = [
         component: () => import('../views/ExternalAuthComplete.vue')
     },
     {
-        path: '/app',
+        path: '/chat',
         name: 'panel',
         meta: {
             title: 'Главная'
         },
-        component: () => import('../views/user/MainPage.vue')
+        component: () => import('../views/user/MainPage.vue'),
+        children: [
+            {
+                path: '',
+                name: 'EmptyChat',
+                component: () => import('../components/chat/EmptyChat.vue')
+            },
+            {
+                path: ':id',
+                name: 'ChatMessages',
+                component: () => import('../components/chat/MessageView.vue')
+            }
+        ]
     }
 ]
 

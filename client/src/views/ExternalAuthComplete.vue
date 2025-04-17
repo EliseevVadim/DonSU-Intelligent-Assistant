@@ -12,7 +12,7 @@ onMounted( () => {
     if (accessToken) {
         try {
             store.dispatch('authenticateExternally', { access_token: accessToken });
-            router.push('/app');
+            router.push('/chat');
         } catch (error) {
             console.error('Ошибка авторизации через Google:', error);
             router.push('/login');

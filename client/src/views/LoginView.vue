@@ -39,7 +39,7 @@ const login = async () => {
             .then(() => {
                 successMessage.value = 'Вы успешно вошли! Сейчас вы будете перенаправлены...'
                 setTimeout(() => {
-                    router.push('/app')
+                    router.push('/chat')
                 }, 2000)
             })
             .catch((error) => {

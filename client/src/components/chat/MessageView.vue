@@ -1,38 +1,60 @@
 <script setup>
-import { defineProps } from 'vue'
+import { computed, onMounted, ref, watch, nextTick } from 'vue'
 import { useTheme } from 'vuetify'
+import { useRoute } from "vue-router"
+import { useStore } from "vuex"
 
-const props = defineProps({
-    messageView: {
-        type: Array,
-        required: true
-    }
-});
+const route = useRoute()
+const store = useStore()
+const theme = useTheme()
+
+const container = ref(null)
+const messages = computed(() => store.getters.MESSAGES)
 
 const senderMap = {
     'ai': 'Ассистент',
     'human': 'Вы'
-};
+}
 
-const theme = useTheme();
+const scrollToBottom = () => {
+    nextTick(() => {
+        if (container.value) {
+            container.value.scrollTop = container.value.scrollHeight
+        }
+    })
+}
+
+onMounted(async () => {
+    const chatId = route.params.id
+    await store.dispatch('loadMessagesByChat', chatId)
+    scrollToBottom()
+})
+
+watch(messages, scrollToBottom, { deep: true })
 </script>
 
 <template>
-    <div class="chat-container" :class="{ dark: theme.global.name.value === 'dark' }">
+    <div
+        ref="container"
+        class="chat-container"
+        :class="{ dark: theme.global.name.value === 'dark' }"
+    >
         <div
-            v-for="item in messageView"
+            v-for="item in messages"
             :key="item.id"
             class="chat-message"
             :class="item.sender === 'AI' ? 'ai-message' : 'user-message'"
         >
             <div class="message-meta">
-                <span class="sender">
-                  <v-icon size="18" class="me-1">
-                    {{ item.sender === 'AI' ? 'mdi-robot' : 'mdi-account' }}
-                  </v-icon>
-                  {{ senderMap[item.sender.toLocaleLowerCase()] }}
-                </span>
-                <span class="timestamp">{{ new Date(item.created_at).toLocaleTimeString() }}</span>
+        <span class="sender">
+          <v-icon size="18" class="me-1">
+            {{ item.sender === 'AI' ? 'mdi-robot' : 'mdi-account' }}
+          </v-icon>
+          {{ senderMap[item.sender.toLocaleLowerCase()] }}
+        </span>
+                <span class="timestamp">
+          {{ new Date(item.created_at).toLocaleTimeString() }}
+        </span>
             </div>
 
             <div class="message-content">
@@ -63,6 +85,7 @@ const theme = useTheme();
 
 
 
+
 <style scoped>
 .chat-container {
     display: flex;
@@ -74,7 +97,6 @@ const theme = useTheme();
     transition: background-color 0.3s ease;
 }
 
-/* Общий стиль сообщений */
 .chat-message {
     display: flex;
     flex-direction: column;
@@ -88,21 +110,18 @@ const theme = useTheme();
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* AI сообщение */
 .ai-message {
     align-self: flex-start;
     background-color: #e8f0fe; /* мягкий голубой */
     color: #1a1a1a;
 }
 
-/* Пользовательское сообщение */
 .user-message {
     align-self: flex-end;
     background-color: #1976d2;
     color: white;
 }
 
-/* Тёмная тема */
 .dark .ai-message {
     background-color: #2a2e3b;
     color: #e2e8f0;
@@ -113,7 +132,6 @@ const theme = useTheme();
     color: white;
 }
 
-/* Мета */
 .message-meta {
     font-size: 12px;
     margin-bottom: 4px;
@@ -136,7 +154,6 @@ const theme = useTheme();
     flex-direction: column;
 }
 
-/* Блоки кода */
 .code-block {
     background-color: #1e1e1e;
     color: #f8f8f2;
