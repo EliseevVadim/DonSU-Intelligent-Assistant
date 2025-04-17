@@ -1,7 +1,7 @@
 <script setup>
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
-import { computed, onMounted, ref, watch } from 'vue'
+import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import { useTheme } from 'vuetify'
 
 import ConfirmDialog from '../../components/ConfirmDialog.vue'
@@ -64,6 +64,10 @@ const deleteChat = async (chat) => {
 }
 
 const sendMessage = async () => {
+    let content = message.value;
+    message.value = '';
+    if (content === '')
+        return;
     let chatId = route.params.id;
     if (!chatId) {
         await store.dispatch('createChat')
@@ -71,17 +75,27 @@ const sendMessage = async () => {
                 chatId = response.data.chat_id;
                 await fetchChats();
                 await router.push('/chat/' + chatId);
+                await nextTick();
             })
             .catch((error) => {
                 console.log(error);
             })
     }
+    let temporaryMessage = {
+        'text_content': content,
+        'sender': 'human'
+    };
+    localStorage.setItem('temporary_message', JSON.stringify(temporaryMessage));
+    store.commit('ADD_TEMPORARY_MESSAGE', temporaryMessage);
+    store.commit('SET_TYPING', true);
+    await new Promise(resolve => setTimeout(resolve, 5000));
     await store.dispatch('sendMessage', {
         'chat_id': chatId,
-        'text_content': message.value
+        'text_content': content
     });
     await fetchMessages(chatId);
-    message.value = '';
+    localStorage.removeItem('temporary_message');
+    store.commit('SET_TYPING', false);
 }
 
 const openChat = async (id) => {

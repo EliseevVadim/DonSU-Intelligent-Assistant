@@ -2,16 +2,24 @@ import axios from "axios";
 import {config} from "@/config/config.js";
 
 const state = {
-    messages: []
+    messages: [],
+    isTyping: false
 };
 
 const getters = {
-    MESSAGES: state => state.messages
+    MESSAGES: state => state.messages,
+    IS_TYPING: state => state.isTyping
 };
 
 const mutations = {
     SET_MESSAGES(state, payload) {
         state.messages = payload.messages.reverse();
+    },
+    SET_TYPING(state, payload) {
+        state.isTyping = payload;
+    },
+    ADD_TEMPORARY_MESSAGE(state, payload) {
+        state.messages.push(payload);
     }
 };
 
