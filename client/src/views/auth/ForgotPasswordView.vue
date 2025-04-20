@@ -2,14 +2,12 @@
 import { ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import SocialAuth from "@/components/SocialAuth.vue";
 import ThemeToggler from "@/components/ThemeToggler.vue";
 
 const store = useStore()
 const router = useRouter()
 
 const email = ref('')
-const password = ref('')
 const errorMessage = ref(null)
 const successMessage = ref(null)
 const loading = ref(false)
@@ -19,34 +17,23 @@ const emailRules = [
     v => !!v || 'Поле обязательно',
     v => /.+@.+\..+/.test(v) || 'Введите корректный email',
 ]
-
-const passwordRules = [
-    v => !!v || 'Поле обязательно',
-    v => v.length >= 6 || 'Пароль должен быть не менее 6 символов',
-]
-
-const login = async () => {
+const requestPasswordReset = async () => {
     loading.value = true
     errorMessage.value = null
-
 
     try {
         let payload = {
             email: email.value,
-            password: password.value
         }
-        store.dispatch('login', payload)
+        store.dispatch('requestPasswordReset', payload)
             .then(() => {
-                successMessage.value = 'Вы успешно вошли! Сейчас вы будете перенаправлены...'
-                setTimeout(() => {
-                    router.push('/chat')
-                }, 2000)
+                router.push('/password-reset-confirmed')
             })
             .catch((error) => {
                 errorMessage.value = error.response.data.detail
             })
     } catch (error) {
-        errorMessage.value = 'Ошибка при авторизации'
+        errorMessage.value = 'Ошибка при запросе восстановления пароля'
     } finally {
         loading.value = false
     }
@@ -60,11 +47,12 @@ const login = async () => {
                 <v-card class="login-card" elevation="10">
                     <v-card-title class="text-center text-h5">
                         <v-icon size="32" class="mr-2">mdi-account-lock</v-icon>
-                        Вход в систему
+                        Сброс пароля
                     </v-card-title>
 
                     <v-card-text class="px-4">
-                        <v-form ref="form" v-model="valid" @submit.prevent="login">
+                        <v-form ref="form" v-model="valid" @submit.prevent="requestPasswordReset"
+                                @keyup.enter="requestPasswordReset">
                             <v-text-field
                                 v-model="email"
                                 label="Email"
@@ -76,30 +64,22 @@ const login = async () => {
                                 :rules="emailRules"
                                 required
                             ></v-text-field>
-
-                            <v-text-field
-                                v-model="password"
-                                label="Пароль"
-                                type="password"
-                                variant="outlined"
-                                density="compact"
-                                class="mt-2"
-                                prepend-inner-icon="mdi-lock"
-                                :rules="passwordRules"
-                                required
-                            ></v-text-field>
                             <v-btn color="primary" variant="elevated" block
                                    :disabled="!valid"
-                                   :loading="loading" @click="login"
+                                   :loading="loading" @click="requestPasswordReset"
                                    class="text-none">
-                                Войти
+                                Продолжить
                             </v-btn>
                             <div class="text-center mt-2">
                                 <router-link to="/register" class="register-link">
                                     Нет аккаунта? Зарегистрироваться
                                 </router-link>
                             </div>
-                            <SocialAuth/>
+                            <div class="text-center mt-2">
+                                <router-link to="/login" class="register-link">
+                                    Уже зарегистрированы? Войти!
+                                </router-link>
+                            </div>
                         </v-form>
                         <v-alert v-if="errorMessage" type="error" dense class="mt-2" closable
                                  @click:close="errorMessage = null">

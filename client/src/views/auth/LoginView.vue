@@ -8,11 +8,8 @@ import ThemeToggler from "@/components/ThemeToggler.vue";
 const store = useStore()
 const router = useRouter()
 
-const first_name = ref('')
-const last_name = ref('')
 const email = ref('')
 const password = ref('')
-const confirm_password = ref('')
 const errorMessage = ref(null)
 const successMessage = ref(null)
 const loading = ref(false)
@@ -28,38 +25,28 @@ const passwordRules = [
     v => v.length >= 6 || 'Пароль должен быть не менее 6 символов',
 ]
 
-const confirmPasswordRules = [
-    v => !!v || 'Поле обязательно',
-    v => v === password.value || 'Пароли должны совпадать',
-]
-
-const commonRules = [
-    v => !!v || 'Поле обязательно'
-]
-
-const register = async () => {
+const login = async () => {
     loading.value = true
     errorMessage.value = null
 
+
     try {
         let payload = {
-            first_name: first_name.value,
-            last_name: last_name.value,
             email: email.value,
             password: password.value
         }
-        store.dispatch('register', payload)
+        store.dispatch('login', payload)
             .then(() => {
-                successMessage.value = 'Регистрация прошла успешно! Сейчас вы будете перенаправлены...'
+                successMessage.value = 'Вы успешно вошли! Сейчас вы будете перенаправлены...'
                 setTimeout(() => {
-                    router.push('/login')
+                    router.push('/chat')
                 }, 2000)
             })
             .catch((error) => {
                 errorMessage.value = error.response.data.detail
             })
     } catch (error) {
-        errorMessage.value = 'Ошибка при регистрации'
+        errorMessage.value = 'Ошибка при авторизации'
     } finally {
         loading.value = false
     }
@@ -73,32 +60,11 @@ const register = async () => {
                 <v-card class="login-card" elevation="10">
                     <v-card-title class="text-center text-h5">
                         <v-icon size="32" class="mr-2">mdi-account-lock</v-icon>
-                        Регистрация
+                        Вход в систему
                     </v-card-title>
+
                     <v-card-text class="px-4">
-                        <v-form ref="form" v-model="valid" @submit.prevent="register">
-                            <v-text-field
-                                v-model="first_name"
-                                label="Имя"
-                                type="text"
-                                variant="outlined"
-                                density="compact"
-                                class="mt-2"
-                                prepend-inner-icon="mdi-account"
-                                :rules="commonRules"
-                                required
-                            ></v-text-field>
-                            <v-text-field
-                                v-model="last_name"
-                                label="Фамилия"
-                                type="text"
-                                variant="outlined"
-                                density="compact"
-                                class="mt-2"
-                                prepend-inner-icon="mdi-account"
-                                :rules="commonRules"
-                                required
-                            ></v-text-field>
+                        <v-form ref="form" v-model="valid" @submit.prevent="login" @keyup.enter="login">
                             <v-text-field
                                 v-model="email"
                                 label="Email"
@@ -122,26 +88,20 @@ const register = async () => {
                                 :rules="passwordRules"
                                 required
                             ></v-text-field>
-                            <v-text-field
-                                v-model="confirm_password"
-                                label="Подтвердите пароль"
-                                type="password"
-                                variant="outlined"
-                                density="compact"
-                                class="mt-2"
-                                prepend-inner-icon="mdi-lock"
-                                :rules="confirmPasswordRules"
-                                required
-                            ></v-text-field>
                             <v-btn color="primary" variant="elevated" block
                                    :disabled="!valid"
-                                   :loading="loading" @click="register"
+                                   :loading="loading" @click="login"
                                    class="text-none">
-                                Зарегистрироваться
+                                Войти
                             </v-btn>
                             <div class="text-center mt-2">
-                                <router-link to="/login" class="register-link">
-                                    Уже зарегистрированы? Войти
+                                <router-link to="/register" class="register-link">
+                                    Нет аккаунта? Зарегистрироваться
+                                </router-link>
+                            </div>
+                            <div class="text-center mt-2">
+                                <router-link to="/forgot-password" class="register-link">
+                                    Забыли пароль?
                                 </router-link>
                             </div>
                             <SocialAuth/>

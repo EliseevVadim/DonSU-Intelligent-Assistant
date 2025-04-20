@@ -16,6 +16,9 @@ const mutations = {
     SET_ACCESS_TOKEN(state, token) {
         localStorage.setItem('access_token', token)
         state.access_token = token
+        config.headers = {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+        };
     },
     REMOVE_ACCESS_TOKEN(state) {
         localStorage.removeItem('access_token')
@@ -45,7 +48,7 @@ const actions = {
             formData.append('password', payload.password);
             await axios.post(config.apiUrl + '/auth/login', formData)
                 .then((response) => {
-                    store.commit('SET_ACCESS_TOKEN', response.data.access_token);
+                    context.commit('SET_ACCESS_TOKEN', response.data.access_token);
                     resolve(response)
                 })
                 .catch((error) => {
@@ -62,6 +65,28 @@ const actions = {
             catch {
                 reject();
             }
+        })
+    },
+    requestPasswordReset: (context, payload) => {
+        return new Promise(async (resolve, reject) => {
+            await axios.post(config.apiUrl + '/auth/password/reset', payload)
+                .then((response) => {
+                    resolve(response);
+                })
+                .catch((error) => {
+                    reject(error)
+                });
+        })
+    },
+    resetPassword: (context, payload) => {
+        return new Promise(async (resolve, reject) => {
+            await axios.post(config.apiUrl + '/auth/password/reset/confirm', payload)
+                .then((response) => {
+                    resolve(response);
+                })
+                .catch((error) => {
+                    reject(error)
+                });
         })
     },
     logout: (context) => {

@@ -134,7 +134,9 @@ onMounted(async () => {
             <User />
         </v-app-bar>
         <v-main>
-            <router-view />
+            <div class="router-view-wrapper">
+                <router-view />
+            </div>
         </v-main>
         <v-navigation-drawer v-model="drawer" outline location="left" width="300">
             <v-list class="z">
@@ -198,5 +200,16 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.v-main {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 72px - 92px);
+    overflow: hidden;
+}
 
+.router-view-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
 </style>

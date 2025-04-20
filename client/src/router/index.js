@@ -15,7 +15,7 @@ const routes = [
         meta: {
             title: 'Авторизация'
         },
-        component: () => import('../views/LoginView.vue')
+        component: () => import('../views/auth/LoginView.vue')
     },
     {
         path: '/register',
@@ -23,7 +23,7 @@ const routes = [
         meta: {
             title: 'Регистрация'
         },
-        component: () => import('../views/RegistrationView.vue')
+        component: () => import('../views/auth/RegistrationView.vue')
     },
     {
         path: '/external_auth',
@@ -31,7 +31,39 @@ const routes = [
         meta: {
             title: 'Заврешение авторизации'
         },
-        component: () => import('../views/ExternalAuthComplete.vue')
+        component: () => import('../views/auth/ExternalAuthComplete.vue')
+    },
+    {
+        path: '/forgot-password',
+        name: 'forgot-password',
+        meta: {
+            title: 'Восстановление пароля'
+        },
+        component: () => import('../views/auth/ForgotPasswordView.vue')
+    },
+    {
+        path: '/password-reset-confirmed',
+        name: 'password-reset-confirmed',
+        meta: {
+            title: 'Запрос на восстановление пароля подтвержден'
+        },
+        component: () => import('../views/auth/PasswordResetConfirmed.vue')
+    },
+    {
+        path: '/auth/password/reset/confirm',
+        name: 'change-password',
+        meta: {
+            title: 'Изменение пароля'
+        },
+        component: () => import('../views/auth/ResetPasswordView.vue')
+    },
+    {
+        path: '/reset-password-success',
+        name: 'reset-password-success',
+        meta: {
+            title: 'Пароль успешно изменен'
+        },
+        component: () => import('../views/auth/ResetPasswordSuccess.vue')
     },
     {
         path: '/chat',
@@ -62,7 +94,7 @@ const router = createRouter({
 )
 
 router.beforeEach((to, from, next) => {
-    document.title = to.meta.title || 'DonSU Knowledge Database Admin';
+    document.title = to.meta.title || 'Интеллектуальный ассистент ДонГУ';
     next();
 });
 
