@@ -1,5 +1,5 @@
 import axios from "axios";
-import {config} from "@/config/config.js";
+import {config} from "@/utils/config.js";
 import store from "@/store/index.js";
 
 const state = {

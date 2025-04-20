@@ -1,11 +1,13 @@
 <script setup>
 
+import {Notifications} from "@kyvg/vue3-notification";
 </script>
 
 <template>
     <v-app>
         <router-view />
     </v-app>
+    <notifications position="bottom right"/>
 </template>
 
 <style>

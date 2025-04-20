@@ -9,6 +9,7 @@ import RenameDialog from '@/components/chat/RenameChatModal.vue'
 import CreateButton from "@/components/chat/CreateButton.vue"
 import MessageField from "@/components/chat/MessageField.vue"
 import User from "@/views/user/User.vue"
+import notify from "@/utils/notify.js";
 
 const theme = useTheme()
 theme.global.name.value = localStorage.getItem('theme') ?? 'light'
@@ -78,7 +79,7 @@ const sendMessage = async () => {
                 await nextTick();
             })
             .catch((error) => {
-                console.log(error);
+                notify.error('Ошибка отправки сообщения', error.response.data.detail);
             })
     }
     let temporaryMessage = {
