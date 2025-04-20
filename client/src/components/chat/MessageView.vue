@@ -108,7 +108,7 @@ watch(messages, scrollToBottom, { deep: true })
     flex-direction: column;
     gap: 12px;
     padding: 16px;
-    max-height: 80vh;
+    max-height: 75vh;
     overflow-y: auto;
     transition: background-color 0.3s ease;
 }

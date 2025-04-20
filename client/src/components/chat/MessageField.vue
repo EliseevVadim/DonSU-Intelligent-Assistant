@@ -29,10 +29,7 @@ const props = defineProps({
   margin: 0 auto;
   max-width: 900px;
 }
-.hover{
-
-}
 .hover:hover{
-color: rgb(205, 134, 255);
+    color: rgb(205, 134, 255);
 }
 </style>
