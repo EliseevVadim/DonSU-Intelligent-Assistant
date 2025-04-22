@@ -1,9 +1,11 @@
 import uuid
 
 from fastapi import APIRouter, Depends
+from langchain_community.vectorstores import PGVector
 
 from app.business_logic.chats.dao import ChatsDAO
 from app.business_logic.messages.dao import MessagesDAO
+from app.business_logic.messages.dependencies import get_vector_db
 from app.business_logic.messages.enums import MessageSender
 from app.business_logic.messages.schemas import SendMessageDTO
 from app.business_logic.messages.service import generate_response
@@ -51,3 +53,7 @@ async def send_message(message_data: SendMessageDTO, user_data: User = Depends(g
     return {'response': response}
 
 
+@router.get('/test/{text}')
+async def test(text: str, user_data: User = Depends(get_user), vector_db: PGVector = Depends(get_vector_db)):
+    chunks = vector_db.similarity_search_with_relevance_scores(text, 3)
+    return {'chunks': chunks}
