@@ -1,7 +1,6 @@
 from sqlalchemy import select, update, delete, func, desc
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.business_logic.chats.models import Chat
 from app.database import async_session_maker
 
 

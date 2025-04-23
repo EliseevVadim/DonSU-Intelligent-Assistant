@@ -5,12 +5,13 @@ from langchain_community.vectorstores import PGVector
 
 from app.business_logic.chats.dao import ChatsDAO
 from app.business_logic.messages.dao import MessagesDAO
-from app.business_logic.messages.dependencies import get_vector_db
+from app.business_logic.messages.dependencies import get_vector_db, get_chain
 from app.business_logic.messages.enums import MessageSender
 from app.business_logic.messages.schemas import SendMessageDTO
-from app.business_logic.messages.service import generate_response
+from app.business_logic.messages.service import generate_response, build_chat_history
 from app.business_logic.users.dependencies import get_user
 from app.business_logic.users.models import User
+from app.constants import KEEP_MESSAGES_IN_MEMORY
 from app.exceptions import ChatNotFound, NoAccessToChat
 
 router = APIRouter(prefix="/messages", tags=["Управление сообщениями"])
@@ -28,32 +29,33 @@ async def get_messages_by_chat(chat_id: str, user_data: User = Depends(get_user)
 
 
 @router.post('/send')
-async def send_message(message_data: SendMessageDTO, user_data: User = Depends(get_user)):
+async def send_message(message_data: SendMessageDTO,
+                       user_data: User = Depends(get_user),
+                       rag_chain=Depends(get_chain)):
     chat = await ChatsDAO.find_one(id=message_data.chat_id)
     message_id = uuid.uuid4()
     if not chat:
         raise ChatNotFound
     if not chat.user_id == user_data.id:
         raise NoAccessToChat
+    history = await MessagesDAO.load_chat_history(chat_id=message_data.chat_id,
+                                                  messages_count=KEEP_MESSAGES_IN_MEMORY)
+    chat_history = build_chat_history(history)
     await MessagesDAO.add(**{
         'id': message_id,
         'chat_id': message_data.chat_id,
         'text_content': message_data.text_content,
         'sender': MessageSender.HUMAN
     })
-    response = generate_response()
+    response = generate_response(query=message_data.text_content,
+                                 rag_chain=rag_chain,
+                                 chat_history=chat_history)
     response_id = uuid.uuid4()
     await MessagesDAO.add(**{
         'id': response_id,
         'chat_id': message_data.chat_id,
-        'text_content': response,
+        'text_content': response['answer'],
         'sender': MessageSender.AI
     })
     await ChatsDAO.touch(message_data.chat_id)
     return {'response': response}
-
-
-@router.get('/test/{text}')
-async def test(text: str, user_data: User = Depends(get_user), vector_db: PGVector = Depends(get_vector_db)):
-    chunks = vector_db.similarity_search_with_relevance_scores(text, 3)
-    return {'chunks': chunks}

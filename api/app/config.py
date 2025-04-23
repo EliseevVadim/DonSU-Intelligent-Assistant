@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     EMBEDDINGS_MODEL_NAME: str
+    GENERATOR_BASE_ENDPOINT: str
     GENERATOR_MODEL_NAME: str
     COLLECTION_NAME: str
     GOOGLE_CLIENT_ID: str
@@ -55,6 +56,10 @@ def get_embeddings_model_name():
 
 def get_generator_model_name():
     return settings.GENERATOR_MODEL_NAME
+
+
+def get_generator_base_endpoint():
+    return settings.GENERATOR_BASE_ENDPOINT
 
 
 def get_collection_name():
