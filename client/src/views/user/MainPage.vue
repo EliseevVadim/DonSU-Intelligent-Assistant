@@ -69,6 +69,11 @@ const sendMessage = async () => {
     message.value = '';
     if (content === '')
         return;
+    let temporaryMessage = {
+        'text_content': content,
+        'sender': 'human'
+    };
+    localStorage.setItem('temporary_message', JSON.stringify(temporaryMessage));
     let chatId = route.params.id;
     if (!chatId) {
         await store.dispatch('createChat')
@@ -82,14 +87,8 @@ const sendMessage = async () => {
                 notify.error('Ошибка отправки сообщения', error.response.data.detail);
             })
     }
-    let temporaryMessage = {
-        'text_content': content,
-        'sender': 'human'
-    };
-    localStorage.setItem('temporary_message', JSON.stringify(temporaryMessage));
     store.commit('ADD_TEMPORARY_MESSAGE', temporaryMessage);
     store.commit('SET_TYPING', true);
-    await new Promise(resolve => setTimeout(resolve, 5000));
     await store.dispatch('sendMessage', {
         'chat_id': chatId,
         'text_content': content
@@ -103,11 +102,16 @@ const openChat = async (id) => {
     await router.push(`/chat/${id}`)
 }
 
-watch(() => route.params.id, async (id) => {
-    if (id) {
-        await fetchMessages(id)
+
+watch(() => route.params.id, async (chatId) => {
+    if (!chatId) return;
+    await store.dispatch('loadMessagesByChat', chatId);
+
+    const temporaryMessage = JSON.parse(localStorage.getItem('temporary_message'));
+    if (temporaryMessage) {
+        store.commit('ADD_TEMPORARY_MESSAGE', temporaryMessage);
     }
-}, { immediate: true })
+}, { immediate: true });
 
 onMounted(async () => {
     if (!isAuthenticated.value) {

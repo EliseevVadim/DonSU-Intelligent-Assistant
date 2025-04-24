@@ -1,10 +1,8 @@
 <script setup>
 import { computed, onMounted, ref, watch, nextTick } from 'vue'
 import { useTheme } from 'vuetify'
-import { useRoute } from "vue-router"
 import { useStore } from "vuex"
 
-const route = useRoute()
 const store = useStore()
 const theme = useTheme()
 
@@ -24,15 +22,6 @@ const scrollToBottom = () => {
         }
     })
 }
-
-onMounted(async () => {
-    const chatId = route.params.id
-    await store.dispatch('loadMessagesByChat', chatId);
-    let temporaryMessage = JSON.parse(localStorage.getItem('temporary_message'));
-    if (temporaryMessage)
-        store.commit('ADD_TEMPORARY_MESSAGE', temporaryMessage)
-    scrollToBottom();
-})
 
 watch(messages, scrollToBottom, { deep: true })
 </script>
