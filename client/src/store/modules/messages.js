@@ -15,6 +15,9 @@ const mutations = {
     SET_MESSAGES(state, payload) {
         state.messages = payload.messages.reverse();
     },
+    CLEAR_MESSAGES(state) {
+        state.messages = []
+    },
     SET_TYPING(state, payload) {
         state.isTyping = payload;
     },

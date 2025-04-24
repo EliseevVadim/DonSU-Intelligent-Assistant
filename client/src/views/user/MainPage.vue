@@ -36,6 +36,7 @@ const fetchMessages = async (chatId) => {
 }
 
 const createNewChat = async () => {
+    store.commit('CLEAR_MESSAGES');
     await router.push('/chat')
 }
 
@@ -58,6 +59,7 @@ const deleteChat = async (chat) => {
         `Вы действительно хотите удалить чат: <b>${chat.name}</b>?`
     ).then(() => {
         if (route.params.id === chat.id) {
+            store.commit('CLEAR_MESSAGES');
             router.push('/chat');
         }
         store.dispatch('deleteChat', chat.id).then(() => fetchChats())
