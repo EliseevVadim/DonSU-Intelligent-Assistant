@@ -1,3 +1,5 @@
+from datetime import date
+
 from langchain_core.messages import HumanMessage, AIMessage
 
 from app.business_logic.messages.enums import MessageSender
@@ -7,7 +9,8 @@ from app.business_logic.messages.models import Message
 def generate_response(query: str, rag_chain, chat_history: list):
     result = rag_chain.invoke({
         'input': query,
-        'chat_history': chat_history
+        'chat_history': chat_history,
+        'current_date': date.today().strftime("%d.%m.%Y")
     })
     return result
 
