@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router';
+import ThemeToggler from "@/components/ThemeToggler.vue";
 
 const router = useRouter();
 </script>
@@ -14,6 +15,7 @@ const router = useRouter();
                 <v-btn block color="secondary" outlined @click="router.push('/register')">Зарегистрироваться</v-btn>
             </v-card>
         </v-container>
+        <ThemeToggler/>
     </v-app>
 </template>
 
