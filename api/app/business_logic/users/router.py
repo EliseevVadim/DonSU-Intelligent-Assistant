@@ -8,12 +8,13 @@ from datetime import datetime, timedelta, timezone
 from authlib.integrations.starlette_client import OAuth
 from starlette.responses import RedirectResponse
 
+from app.business_logic.applications.dependencies import get_application
 from app.business_logic.users.auth import hash_password, authenticate_user, create_access_token
 from app.business_logic.users.dao import UsersDAO
 from app.business_logic.users.dependencies import get_user
 from app.business_logic.users.models import User
 from app.business_logic.users.schemas import UserRegistrationDTO, UserPublicDTO, ResetPasswordRequestDTO, \
-    ResetPasswordDTO
+    ResetPasswordDTO, ExternalUserRegistrationDTO, GetExternalUsersDTO, GetExternalUserRegisteredDTO
 from app.business_logic.users.service import send_password_reset_email
 from app.config import get_google_client_id, get_google_client_secret, get_client_url
 from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, NoUserIdException, \
@@ -44,6 +45,40 @@ async def register_user(user_data: UserRegistrationDTO):
     user_info['password'] = hash_password(user_data.password)
     await UsersDAO.add(**user_info)
     return {'message': 'Пользователь успешно зарегистрирован'}
+
+
+@router.post('/register/external')
+async def register_external_user(user_data: ExternalUserRegistrationDTO):
+    external_app = await get_application(user_data.api_key)
+    email = f"{user_data.external_user_id}@{external_app.auth_provider_name}.oauth"
+    user = await UsersDAO.find_one(email=email)
+    if user:
+        raise UserAlreadyExistsException
+    user_info = {
+        'first_name': user_data.first_name,
+        'last_name': user_data.last_name,
+        'email': email,
+        'auth_provider': external_app.auth_provider_name,
+        'password': hash_password(secrets.token_urlsafe(32))
+    }
+    await UsersDAO.add(**user_info)
+    return {'message': 'Пользователь успешно зарегистрирован'}
+
+
+@router.post('/externally-added')
+async def get_external_users(search_data: GetExternalUsersDTO):
+    external_app = await get_application(search_data.api_key)
+    users = await UsersDAO.find_all(auth_provider=external_app.auth_provider_name)
+    return {'users': users}
+
+
+@router.post('/external-user-registered')
+async def external_user_already_registered(search_data: GetExternalUserRegisteredDTO):
+    external_app = await get_application(search_data.api_key)
+    email = f"{search_data.external_user_id}@{external_app.auth_provider_name}.oauth"
+    user = await UsersDAO.find_one(email=email)
+    user_found = user is not None
+    return {'registered': user_found}
 
 
 @router.post('/login')

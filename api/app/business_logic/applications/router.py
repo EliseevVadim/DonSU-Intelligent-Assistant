@@ -23,13 +23,13 @@ async def create_app(app_data: CreateApplicationDTO,
     app_info['creator_id'] = user_data.id
     await ApplicationsDAO.add(**app_info)
     application = await ApplicationsDAO.find_one(app_key=hashed_key)
-    api_key = create_access_token({'sub': application.id, 'key': app_key})
+    api_key = create_access_token({'sub': str(application.id), 'key': app_key})
     return {
         'ok': True,
         'app_key': app_key,
         'api_key': api_key,
         'message': f'Приложение успешно создано. Ключ приложения: {app_key}, токен приложения: {api_key}. Используйте '
-                   f'ключ приложения для модификации информации о нем и для авторизации запросов к API и токен для '
+                   f'ключ приложения для модификации информации о нем и токен для '
                    f'авторизации запросов к API. ВАЖНО! Храните их в защищенном месте! Передача ключа и токена третьим '
                    f'лицам может повлечь к несанкционированному доступу, их утеря - к потере доступа к приложению.'
     }

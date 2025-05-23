@@ -10,6 +10,22 @@ class UserRegistrationDTO(BaseModel):
     password: str = Field(..., min_length=6, description="Пароль, не менее 6 символов")
 
 
+class ExternalUserRegistrationDTO(BaseModel):
+    first_name: str = Field(..., description="Имя пользователя")
+    last_name: str = Field(..., description="Фамилия пользователя")
+    external_user_id: str = Field(..., description="Id пользователя в стороннем приложении")
+    api_key: str = Field(..., description="Токен приложения")
+
+
+class GetExternalUsersDTO(BaseModel):
+    api_key: str = Field(..., description="Токен приложения")
+
+
+class GetExternalUserRegisteredDTO(BaseModel):
+    external_user_id: str = Field(..., description="Id пользователя в стороннем приложении")
+    api_key: str = Field(..., description="Токен приложения")
+
+
 class UserLoginDTO(BaseModel):
     email: EmailStr = Field(..., description="Электронная почта")
     password: str = Field(..., min_length=6, description="Пароль, не менее 6 символов")
