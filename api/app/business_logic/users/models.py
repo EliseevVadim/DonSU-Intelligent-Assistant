@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy import CheckConstraint, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.business_logic.applications.models import Application
 from app.business_logic.chats.models import Chat
 from app.database import Base, str_unique, int_primary
 
@@ -20,6 +21,7 @@ class User(Base):
     reset_token_expires_at: Mapped[Optional[DateTime]] = mapped_column(DateTime, nullable=True)
 
     chats: Mapped[list['Chat']] = relationship('Chat', back_populates='user')
+    apps: Mapped[list['Application']] = relationship('Application', back_populates='user')
     __table_args__ = (
         CheckConstraint("LENGTH(password) >= 8", name="password_min_length"),
     )

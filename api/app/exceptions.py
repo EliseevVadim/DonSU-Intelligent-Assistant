@@ -31,3 +31,8 @@ ChatNotFound = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Ча
 
 NoAccessToChat = HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                detail='У Вас нет прав управлять этим чатом')
+
+AppNotFound = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Приложение не найдено')
+
+NoAccessToApp = HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                              detail='У Вас нет прав управлять этим приложением')

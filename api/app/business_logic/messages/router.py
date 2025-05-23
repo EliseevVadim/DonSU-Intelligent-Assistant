@@ -1,11 +1,10 @@
 import uuid
 
 from fastapi import APIRouter, Depends
-from langchain_community.vectorstores import PGVector
 
 from app.business_logic.chats.dao import ChatsDAO
 from app.business_logic.messages.dao import MessagesDAO
-from app.business_logic.messages.dependencies import get_vector_db, get_chain
+from app.business_logic.messages.dependencies import get_chain
 from app.business_logic.messages.enums import MessageSender
 from app.business_logic.messages.schemas import SendMessageDTO
 from app.business_logic.messages.service import generate_response, build_chat_history
