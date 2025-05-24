@@ -1,4 +1,5 @@
 import secrets
+import uuid
 
 from fastapi import APIRouter, Depends, Response, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -9,6 +10,7 @@ from authlib.integrations.starlette_client import OAuth
 from starlette.responses import RedirectResponse
 
 from app.business_logic.applications.dependencies import get_application
+from app.business_logic.chats.dao import ChatsDAO
 from app.business_logic.users.auth import hash_password, authenticate_user, create_access_token
 from app.business_logic.users.dao import UsersDAO
 from app.business_logic.users.dependencies import get_user
@@ -62,6 +64,13 @@ async def register_external_user(user_data: ExternalUserRegistrationDTO):
         'password': hash_password(secrets.token_urlsafe(32))
     }
     await UsersDAO.add(**user_info)
+    user = await UsersDAO.find_one(email=email)
+    chat_info = {
+        'id': uuid.uuid4(),
+        'user_id': user.id,
+        'name': f"Чат с пользователем {user.id} в {external_app.auth_provider_name}"
+    }
+    await ChatsDAO.add(**chat_info)
     return {'message': 'Пользователь успешно зарегистрирован'}
 
 

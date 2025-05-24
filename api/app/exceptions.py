@@ -36,3 +36,7 @@ AppNotFound = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пр�
 
 NoAccessToApp = HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                               detail='У Вас нет прав управлять этим приложением')
+
+ExternalAppUserNotFound = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь с заданным id '
+                                                                                      'и источником авторизации не '
+                                                                                      'был найден')
