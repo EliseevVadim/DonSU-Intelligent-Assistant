@@ -10,6 +10,10 @@ bot = Bot(VK_API_KEY)
 
 @bot.on.message()
 async def on_message(message: Message):
+    if not message.text:
+        await message.answer("К сожалению, я пока умею понимать только текст. Напишите мне словами, и я "
+                             "постараюсь помочь!")
+        return
     user_id = message.from_id
     user_exists = await check_user_registered(user_id)
     if not user_exists:
