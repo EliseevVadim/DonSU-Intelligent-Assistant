@@ -10,6 +10,7 @@ class Application(Base):
     __tablename__ = 'applications'
     id: Mapped[int_primary]
     name: Mapped[str] = mapped_column(nullable=False)
+    description: Mapped[str] = mapped_column(nullable=True)
     auth_provider_name: Mapped[str_unique]
     app_key: Mapped[str_unique]
     creator_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
@@ -20,6 +21,8 @@ class Application(Base):
         return json.dumps({
             "id": self.id,
             "name": self.name,
+            "description": self.description,
+            "creator_id": self.creator_id,
             "auth_provider_name": self.auth_provider_name,
             "created_at": self.created_at,
             "updated_at": self.updated_at
@@ -27,5 +30,6 @@ class Application(Base):
 
     def __repr__(self):
         return (f"Application(id={self.id}, name='{self.name}', "
+                f"description={self.description}, creator_id={self.creator_id})"
                 f"auth_provider_name='{self.auth_provider_name}', "
                 f"created_at={self.created_at}, updated_at={self.updated_at})")

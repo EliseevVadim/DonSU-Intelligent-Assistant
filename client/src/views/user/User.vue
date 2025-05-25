@@ -68,6 +68,17 @@ const logout = async () => {
                 <v-divider class="my-3" />
 
                 <v-btn
+                    @click="router.push('/apps')"
+                    variant="text"
+                    prepend-icon="mdi-apps"
+                    block
+                >
+                    Приложения
+                </v-btn>
+
+                <v-divider class="my-3" />
+
+                <v-btn
                     @click="logout"
                     color="red"
                     variant="text"

@@ -66,6 +66,14 @@ const routes = [
         component: () => import('../views/auth/ResetPasswordSuccess.vue')
     },
     {
+        path: '/apps',
+        name: 'apps',
+        meta: {
+            title: 'Мои приложения'
+        },
+        component: () => import('../views/user/AppsPage.vue')
+    },
+    {
         path: '/chat',
         name: 'panel',
         meta: {

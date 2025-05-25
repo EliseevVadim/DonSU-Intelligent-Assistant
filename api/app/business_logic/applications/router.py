@@ -13,6 +13,12 @@ from app.exceptions import AppNotFound, NoAccessToApp
 router = APIRouter(prefix="/apps", tags=["Управление приложениями"])
 
 
+@router.get('/')
+async def get_all_apps_made_by_user(user_data: User = Depends(get_user)):
+    apps = await ApplicationsDAO.find_all(creator_id=user_data.id)
+    return {'apps': apps}
+
+
 @router.post('/create')
 async def create_app(app_data: CreateApplicationDTO,
                      user_data: User = Depends(get_user)):
@@ -28,7 +34,7 @@ async def create_app(app_data: CreateApplicationDTO,
         'ok': True,
         'app_key': app_key,
         'api_key': api_key,
-        'message': f'Приложение успешно создано. Ключ приложения: {app_key}, токен приложения: {api_key}. Используйте '
+        'message': f'Приложение успешно создано. Используйте '
                    f'ключ приложения для модификации информации о нем и токен для '
                    f'авторизации запросов к API. ВАЖНО! Храните их в защищенном месте! Передача ключа и токена третьим '
                    f'лицам может повлечь к несанкционированному доступу, их утеря - к потере доступа к приложению.'
