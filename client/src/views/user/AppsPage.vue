@@ -22,8 +22,7 @@ const editFormRef = ref()
 let editForm = ref({
     app_key: null,
     name: '',
-    description: '',
-    auth_provider_name: ''
+    description: ''
 })
 
 const editingAppKey = ref(null)
@@ -311,12 +310,6 @@ onMounted(async () => {
                         v-model="editForm.name"
                         label="Название"
                         :rules="[v => !!v || 'Обязательное поле', v => v.length >= 5 || 'Минимум 5 символов']"
-                        required
-                    />
-                    <v-text-field
-                        v-model="editForm.auth_provider_name"
-                        label="Провайдер авторизации"
-                        :rules="[v => !!v || 'Обязательное поле', v => v.length >= 2 || 'Минимум 2 символа']"
                         required
                     />
                     <v-textarea
