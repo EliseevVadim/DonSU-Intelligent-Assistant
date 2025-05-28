@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timezone, timedelta
 
 from langchain_core.messages import HumanMessage, AIMessage
 
@@ -26,3 +26,11 @@ def build_chat_history(history: list[Message]):
             case _:
                 raise ValueError(f'Unknown sender: {message.sender}')
     return chat_history
+
+
+def should_clear_context(history: list[Message], hours: int) -> bool:
+    if not history:
+        return False
+    last_message_sent_at = history[-1].created_at
+    now = datetime.now(timezone.utc)
+    return last_message_sent_at.date() != now.date() and (now - last_message_sent_at > timedelta(hours=hours))

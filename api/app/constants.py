@@ -1,4 +1,5 @@
 KEEP_MESSAGES_IN_MEMORY = 20
+CLEAR_CONTEXT_AFTER_HOURS_OF_NEW_DAY = 8
 
 CONTEXTUALIZE_QUESTION_PROMPT = (
     "Given a chat history and the latest user question "

@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends
 
@@ -8,11 +9,11 @@ from app.business_logic.messages.dao import MessagesDAO
 from app.business_logic.messages.dependencies import get_chain
 from app.business_logic.messages.enums import MessageSender
 from app.business_logic.messages.schemas import SendMessageDTO, SendMessageExternallyDTO
-from app.business_logic.messages.service import generate_response, build_chat_history
+from app.business_logic.messages.service import generate_response, build_chat_history, should_clear_context
 from app.business_logic.users.dao import UsersDAO
 from app.business_logic.users.dependencies import get_user
 from app.business_logic.users.models import User
-from app.constants import KEEP_MESSAGES_IN_MEMORY
+from app.constants import KEEP_MESSAGES_IN_MEMORY, CLEAR_CONTEXT_AFTER_HOURS_OF_NEW_DAY
 from app.exceptions import ChatNotFound, NoAccessToChat, ExternalAppUserNotFound
 
 router = APIRouter(prefix="/messages", tags=["Управление сообщениями"])
@@ -74,7 +75,8 @@ async def send_message(message_data: SendMessageExternallyDTO,
     message_id = uuid.uuid4()
     history = await MessagesDAO.load_chat_history(chat_id=chat.id,
                                                   messages_count=KEEP_MESSAGES_IN_MEMORY)
-    chat_history = build_chat_history(history)
+    clear_context = should_clear_context(history, CLEAR_CONTEXT_AFTER_HOURS_OF_NEW_DAY)
+    chat_history = [] if clear_context else build_chat_history(history)
     await MessagesDAO.add(**{
         'id': message_id,
         'chat_id': chat.id,
