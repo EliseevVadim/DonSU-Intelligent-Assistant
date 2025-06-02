@@ -9,11 +9,12 @@ from langchain_postgres import PGVector
 from transformers import AutoTokenizer, AutoModel
 
 from app.config import get_embeddings_model_name, get_knowledge_base_connection_string, get_collection_name, \
-    get_generator_model_name, get_generator_base_endpoint
+    get_generator_model_name, get_generator_base_endpoint, get_embeddings_model_revision
 from app.constants import QA_PROMPT, CONTEXTUALIZE_QUESTION_PROMPT
 from app.utils.embeddings import get_embeddings
 
 embeddings_model_name = get_embeddings_model_name()
+embeddings_model_revision = get_embeddings_model_revision()
 
 vector_db_connection_string = get_knowledge_base_connection_string()
 collection_name = get_collection_name()
@@ -21,7 +22,8 @@ collection_name = get_collection_name()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 embeddings_tokenizer = AutoTokenizer.from_pretrained(embeddings_model_name)
-embeddings_model = AutoModel.from_pretrained(embeddings_model_name, trust_remote_code=True, device_map=device)
+embeddings_model = AutoModel.from_pretrained(embeddings_model_name, trust_remote_code=True,
+                                             device_map=device, revision=embeddings_model_revision)
 
 embeddings = get_embeddings(embeddings_model)
 

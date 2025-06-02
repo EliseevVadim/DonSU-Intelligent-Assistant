@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     EMBEDDINGS_MODEL_NAME: str
+    EMBEDDINGS_MODEL_REVISION: str
     GENERATOR_BASE_ENDPOINT: str
     GENERATOR_MODEL_NAME: str
     COLLECTION_NAME: str
@@ -52,6 +53,10 @@ def get_secret_key():
 
 def get_embeddings_model_name():
     return settings.EMBEDDINGS_MODEL_NAME
+
+
+def get_embeddings_model_revision():
+    return settings.EMBEDDINGS_MODEL_REVISION
 
 
 def get_generator_model_name():
