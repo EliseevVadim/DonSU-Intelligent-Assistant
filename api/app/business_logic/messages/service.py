@@ -32,5 +32,7 @@ def should_clear_context(history: list[Message], hours: int) -> bool:
     if not history:
         return False
     last_message_sent_at = history[-1].created_at
+    if last_message_sent_at.tzinfo is None:
+        last_message_sent_at = last_message_sent_at.replace(tzinfo=timezone.utc)
     now = datetime.now(timezone.utc)
     return last_message_sent_at.date() != now.date() and (now - last_message_sent_at > timedelta(hours=hours))
