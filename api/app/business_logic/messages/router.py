@@ -74,8 +74,11 @@ async def send_message(message_data: SendMessageExternallyDTO,
     chat = await ChatsDAO.find_one(user_id=user.id)
     message_id = uuid.uuid4()
     history = await MessagesDAO.load_chat_history(chat_id=chat.id,
-                                                  messages_count=KEEP_MESSAGES_IN_MEMORY)
+                                                  messages_count=KEEP_MESSAGES_IN_MEMORY,
+                                                  last_context_reset_at=chat.last_context_reset_at)
     clear_context = should_clear_context(history, CLEAR_CONTEXT_AFTER_HOURS_OF_NEW_DAY)
+    if clear_context:
+        await ChatsDAO.update(filter_by={'id': chat.id}, last_context_reset_at=datetime.now(timezone.utc))
     chat_history = [] if clear_context else build_chat_history(history)
     await MessagesDAO.add(**{
         'id': message_id,
