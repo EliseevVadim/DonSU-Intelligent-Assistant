@@ -2,7 +2,7 @@ import torch
 
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_postgres import PGVector
 
@@ -57,7 +57,18 @@ qa_prompt = ChatPromptTemplate.from_messages([
     ("human", "{input}")
 ])
 
-qa_chain = create_stuff_documents_chain(llm=llm, prompt=qa_prompt)
+document_prompt = PromptTemplate(
+    input_variables=["page_content", "filename", "last_updated"],
+    template=(
+        "[METADATA]\n"
+        "filename: {filename}\n"
+        "last_updated: {last_updated}\n\n"
+        "[CONTENT]\n"
+        "{page_content}"
+    )
+)
+
+qa_chain = create_stuff_documents_chain(llm=llm, prompt=qa_prompt, document_prompt=document_prompt)
 rag_chain = create_retrieval_chain(retriever, qa_chain)
 
 
