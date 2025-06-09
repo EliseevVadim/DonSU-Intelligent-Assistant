@@ -46,6 +46,19 @@ async def register_user(user_id: int, first_name: str, last_name=None):
             logger.error(f"[register_user] Ошибка при POST-запросе: {e}")
 
 
+async def reset_context(user_id: int):
+    payload = {
+        'external_user_id': str(user_id),
+        'api_key': MF_AI_API_KEY
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(f"{MF_AI_API_URL}/chats/reset-context", json=payload, timeout=5) as response:
+                response.raise_for_status()
+        except aiohttp.ClientError as e:
+            logger.error(f"[reset_context] Ошибка при POST-запросе: {e}")
+
+
 def generate_assistant_response(message: Message):
     payload = {
         'api_key': MF_AI_API_KEY,
@@ -58,4 +71,4 @@ def generate_assistant_response(message: Message):
         return response.json().get('response')
 
     except (requests.RequestException, ValueError) as e:
-        logger.error(f"[register_user] Ошибка при запросе: {e}")
+        logger.error(f"[generate_assistant_response] Ошибка при запросе: {e}")

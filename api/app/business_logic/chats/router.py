@@ -1,12 +1,15 @@
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 
+from app.business_logic.applications.dependencies import get_application
 from app.business_logic.chats.dao import ChatsDAO
-from app.business_logic.chats.schemas import RenameChatDTO
+from app.business_logic.chats.schemas import RenameChatDTO, ResetChatContextDTO
+from app.business_logic.users.dao import UsersDAO
 from app.business_logic.users.dependencies import get_user
 from app.business_logic.users.models import User
-from app.exceptions import ChatNotFound, NoAccessToChat
+from app.exceptions import ChatNotFound, NoAccessToChat, ExternalAppUserNotFound
 
 router = APIRouter(prefix='/chats', tags=['Управление чатами'])
 
@@ -46,3 +49,15 @@ async def delete_chat(chat_id: str, user_data: User = Depends(get_user)):
         raise NoAccessToChat
     await ChatsDAO.delete(id=chat_id)
     return {'ok': True, 'message': 'Чат был успешно удален'}
+
+
+@router.post('/reset-context')
+async def reset_chat_context(reset_data: ResetChatContextDTO):
+    external_app = await get_application(reset_data.api_key)
+    email = f"{reset_data.external_user_id}@{external_app.auth_provider_name}.oauth"
+    user = await UsersDAO.find_one(email=email)
+    if not user:
+        raise ExternalAppUserNotFound
+    chat = await ChatsDAO.find_one(user_id=user.id)
+    await ChatsDAO.update(filter_by={'id': chat.id}, last_context_reset_at=datetime.now(timezone.utc))
+    return {'ok': True, 'message': 'Контекст чата был успешно сброшен'}

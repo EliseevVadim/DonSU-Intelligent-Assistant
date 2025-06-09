@@ -6,7 +6,7 @@ from aiogram import Dispatcher, Bot, F
 from aiogram.types import Message
 
 from config import BOT_TOKEN
-from core.assistant_api import check_user_registered, register_user, generate_assistant_response
+from core.assistant_api import check_user_registered, register_user, generate_assistant_response, reset_context
 from core.logger import logger
 
 dispatcher = Dispatcher()
@@ -26,6 +26,17 @@ async def command_start_handler(message: Message) -> None:
         "🤖 Этот ИИ-ассистент создан для помощи студентам и абитуриентам Донецкого государственного университета.\n\n"
         "⚠️ Пожалуйста, учитывайте, что ответы могут содержать неточности. Всегда перепроверяйте важную информацию, "
         "особенно связанную с расписанием, приёмной комиссией, учебными документами и нормативными актами."
+    )
+
+
+@dispatcher.message(Command("clear"))
+async def command_start_handler(message: Message) -> None:
+    user_id = message.from_user.id
+    await reset_context(
+        user_id=user_id
+    )
+    await message.answer(
+        "История чата успешно очищена!"
     )
 
 
